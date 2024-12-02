@@ -1,0 +1,25 @@
+---
+about:
+  template: jolla
+  id: about-block
+  image: "img/my_photo.jpg"
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/shassbergerb
+   # - icon: linkedin
+   #   text: LinkedIn
+   #   href: https://www.linkedin.com/in/marvin-schmitt-a85b321a2/
+    - icon: envelope
+      text: Email
+      href: "mailto:brent.shassberger@case.edu"  
+---
+
+::: {#about-block}
+:::
+
+# About Me
+
+I am Brent Shassberger, a current PhD Student at Case Western Reserve University and future Virologist! Although I am a Cleveland native, my undergraduate studies brought me to the University of Miami (FL), where I received my B.S. in Microbiology and Immunology. After earning my B.S., I continued my education, this time pursing a Master's degree in Pathology at CWRU. During this time, I joined the lab of Dr. Anna Bruchez, PhD, and studied two human genes that *may* impact Ebola virus infection: Chloride Channel 3 and TGF-$\beta$ Receptor Associated Protein 1 (TGFBRAP1). 
+
+
