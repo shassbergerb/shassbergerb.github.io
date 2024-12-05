@@ -2,14 +2,18 @@
 title: Education and Projects
 ---
 
-WORK IN PROGRESS
-
 ## Education
 
-From 2019-2022, I attended the University of Miami, Florida, where I earned my Bachelors of Science in Microbiology and Immunology, with minors in Chemistry and Public Health. While at Miami, I became fascinated with how our natural and disease-causing microbes interact with our body and immune system. Later, I 
+From 2019-2022, I attended the University of Miami, Florida, where I earned my Bachelors of Science in Microbiology and Immunology, with minors in Chemistry and Public Health. While at Miami, I became fascinated with how our natural and disease-causing microbes interact with our body and immune system.
+
+In 2023, I joined Case Western Reserve University's Masters in Pathology program to further my education and gain more research experience. It was at this time that I joined the lab of Dr. Anna Bruchez to study human proteins that can prevent Ebola virus infections; two proteins of interest to me at this time were TGFbRAP1 and CLCN3. Following acceptance into the Biomedical Sciences Training PhD Program at Case, I left the Masters (without taking the degree to have class credits transfer between programs). 
+
+I am currently working in the lab of Dr. Kenneth Matreyek, a close collaborator of Dr. Bruchez, to pursue my Doctorate in Molecular Virology.
 
 ----
 
 ## Projects
 
-Hello world
+This website was created as a final project for the Statistical Methods class I am taking this semester. This class has also taught me how to perform statistical methods in R.
+
+Experimental progress towards my thesis has been slow; I just recently declared what lab I will be joining, so I have not had much time to perform any experiments. I will update this page once I have made more progress.
