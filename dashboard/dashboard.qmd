@@ -40,13 +40,13 @@ library(gt)
 ```
 
 ```{r data_ingest}
-body_meas = read_rds("dashboard\\data\\body_raw.rds")
+body_meas = read_rds("body_raw.rds")
 
-food_sec = read_rds("dashboard\\data\\food_sec_raw.rds")
+food_sec = read_rds("food_sec_raw.rds")
 
-demog = read_rds("dashboard\\data\\demo_raw.rds")
+demog = read_rds("demo_raw.rds")
 
-alc_use = read_rds("dashboard\\data\\alc_use.rds")
+alc_use = read_rds("alc_use.rds")
 ```
 
 ```{r cleaning_data}
@@ -78,7 +78,7 @@ raw = raw %>% filter(fsq165 != "NA", alq151 != "NA", complete.cases(fsq165, bmxh
 
 
 ```{r load_data, message= F}
-ld <- read_excel("dashboard\\data\\ld.xlsx")
+ld <- read_excel("data\\ld.xlsx")
 ```
 
 ```{r set_input}
@@ -134,19 +134,16 @@ This is a fictional hospital. The data are simulated based on realistic birth ch
 #| label: all-values
 #| results: hide
 
-n_births <- nrow(ld)
+n_participants <- nrow(raw)
 
-p_cesarean <- ld |>
-  count(delivery_method) |>
-  mutate(p = n / sum(n)) |>
-  filter(delivery_method == "Cesarean") |>
-  pull(p)
+p_fsdhh = raw %>%
+  count(fsdhh) %>%
+  mutate(p = n/sum(n)) %>%
+  filter(fsdhh != "none") %>%
+  mutate(t = sum(p)) %>%
+  distinct(t) %>%
+  pull(t)
 
-p_cesarean_color <- case_when(
-  between(p_cesarean, params$us_cesarean_rate, params$us_cesarean_rate + params$threshold_diff) ~ "warning",
-  p_cesarean > params$us_cesarean_rate + params$threshold_diff ~ "danger",
-  .default = "light"
-  )
 
 p_preterm <- ld |>
   count(term) |>
@@ -165,23 +162,22 @@ p_preterm_color <- case_when(
 
 ```{r}
 #| content: valuebox
-#| title: "Total births"
+#| title: "Participants"
 
 list(
   icon = "file-medical",
   color = "primary",
-  value = n_births
+  value = n_participants
 )
 ```
 
 ```{r}
 #| content: valuebox
-#| title: "Cesarean deliveries"
+#| title: "Americans with Food Insecurity"
 
 list(
   icon = "clipboard2-pulse",
-  color = p_cesarean_color,
-  value = label_percent(accuracy = 0.1)(p_cesarean)
+  value = label_percent(accuracy = 0.1)(p_fsdhh)
 )
 ```
 
@@ -202,6 +198,9 @@ list(
 
 ```{r}
 #| title: Food Insecurity
+
+
+
 
 ld |>
   count(delivery_method) |>
@@ -288,22 +287,22 @@ ld |>
 #| label: vaginal-values
 #| results: hide
 
-ld_v <- ld |>
-  filter(delivery_method == "Vaginal")
+#ld_v <- ld |>
+  #filter(delivery_method == "Vaginal")
 
-n_births_v <- nrow(ld_v)
+#n_births_v <- nrow(ld_v)
 
-p_preterm_v <- ld_v |>
-  count(term) |>
-  mutate(p = n / sum(n)) |>
-  filter(term == "Pre-term") |>
-  pull(p)
+#p_preterm_v <- ld_v |>
+ # count(term) |>
+  #mutate(p = n / sum(n)) |>
+ # filter(term == "Pre-term") |>
+ #pull(p)
 
-p_preterm_color_v <- case_when(
-  between(p_preterm_v, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
-  p_preterm_v > params$us_preterm_rate + params$threshold_diff ~ "danger",
-  .default = "light"
-  )
+#p_preterm_color_v <- case_when(
+ # between(p_preterm_v, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
+#  p_preterm_v > params$us_preterm_rate + params$threshold_diff ~ "danger",
+  #.default = "light"
+ # )
 ```
 
 ### Row {height="20%"}
@@ -312,22 +311,21 @@ p_preterm_color_v <- case_when(
 #| component: valuebox
 #| title: "Total births"
 
-list(
-  icon = "file-medical",
-  color = "primary",
-  value = n_births_v
-)
+#list(
+ # icon = "file-medical",
+  #color = "primary",
+  #value = n_births_v
+#)
 ```
 
 ```{r}
 #| component: valuebox
 #| title: "Pre-term births"
 
-list(
-  icon = "calendar-week",
-  color = p_preterm_color_v,
-  value = label_percent(accuracy = 0.1)(p_preterm_v)
-)
+#list(
+ # icon = "calendar-week",
+#  color = p_preterm_color_v,
+ # value = label_percent(accuracy = 0.1)(p_preterm_v))
 ```
 
 ### Row {height="40%"}
@@ -335,18 +333,18 @@ list(
 ```{r}
 #| title: Maternal age
 
-ld_v |>
-  count(maternal_age) |>
-  mutate(p = n / sum(n)) |>
-  ggplot(aes(x = maternal_age, y = n, group = 1)) +
-  geom_line(linewidth = 2, color = "#0e263560") +
-  geom_point(size = 3, color = "#0e2635") +
-  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
-  labs(x = NULL) +
-  scale_y_continuous(
-    "Count",
-    sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
-  )
+#ld_v |>
+#  count(maternal_age) |>
+#  mutate(p = n / sum(n)) |>
+#  ggplot(aes(x = maternal_age, y = n, group = 1)) +
+#  geom_line(linewidth = 2, color = "#0e263560") +
+##  geom_point(size = 3, color = "#0e2635") +
+#  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
+#  labs(x = NULL) +
+#  scale_y_continuous(
+##    "Count",
+  #  sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
+#  )
 ```
 
 ### Row {height="40%" .tabset}
@@ -354,33 +352,33 @@ ld_v |>
 ```{r}
 #| title: Maternal age and parity
 
-ld_v |>
-  count(maternal_age, parity) |>
-  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(parity))) +
-  geom_col(position = "fill", color = "white") +
-  scale_fill_brewer(
-    palette = "Blues",
-    guide = guide_legend(reverse = TRUE),
-    direction = -1
-  ) +
-  scale_x_continuous(labels = label_percent()) +
-  labs(y = NULL, x = NULL, fill = "Parity")
+#ld_v |>
+#  count(maternal_age, parity) |>
+#  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(parity))) +
+#  geom_col(position = "fill", color = "white") +
+#  scale_fill_brewer(
+#    palette = "Blues",
+##    guide = guide_legend(reverse = TRUE),
+#    direction = -1
+#  ) +
+#  scale_x_continuous(labels = label_percent()) +
+#  labs(y = NULL, x = NULL, fill = "Parity")
 ```
 
 ```{r}
 #| title: Maternal age and term
-
-ld_v |>
-  count(maternal_age, term) |>
-  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(term))) +
-  geom_col(position = "fill", color = "white") +
-  scale_fill_brewer(
-    palette = "Greens",
-    guide = guide_legend(reverse = TRUE),
-    direction = -1
-  ) +
-  scale_x_continuous(labels = label_percent()) +
-  labs(y = NULL, x = NULL, fill = "Term")
+#
+#ld_v |>
+#  count(maternal_age, term) |>
+###  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(term))) +
+#  geom_col(position = "fill", color = "white") +
+#  scale_fill_brewer(
+#    palette = "Greens",
+#    guide = guide_legend(reverse = TRUE),
+##    direction = -1
+#  ) +
+#  scale_x_continuous(labels = label_percent()) +
+#  labs(y = NULL, x = NULL, fill = "Term")
 ```
 
 ## Column {width="40%"}
@@ -388,19 +386,17 @@ ld_v |>
 ```{r}
 #| title: Data
 
-ld_v |>
-  select(-delivery_method) |>
-  arrange(patient_id) |>
-  datatable(
-    colnames = c("ID", "Maternal age", "Parity", "Term"),
-    options = list(
-      dom = "lrtip", 
-      paging = TRUE,
-      lengthMenu = c(5, 10, 25),
-      pageLength = 10, 
-      scrollY = TRUE
-    ),
-  )
+#ld_v |>
+#  select(-delivery_method) |>
+#  arrange(patient_id) |>
+#  datatable(
+#    colnames = c("ID", "Maternal age", "Parity", "Term"),
+#    options = list(
+##      dom = "lrtip", 
+##      paging = TRUE,
+#      lengthMenu = c(5, 10, 25),
+#      pageLength = 10, 
+#      scrollY = TRUE ),)
 ```
 
 # Caesarean {orientation="columns"}
@@ -411,22 +407,22 @@ ld_v |>
 #| label: cesarean-values
 #| results: hide
 
-ld_c <- ld |>
-  filter(delivery_method == "Cesarean")
+#ld_c <- ld |>
+#  filter(delivery_method == "Cesarean")
 
-n_births_c <- nrow(ld_c)
+#n_births_c <- nrow(ld_c)
 
-p_preterm_c <- ld_c |>
-  count(term) |>
-  mutate(p = n / sum(n)) |>
-  filter(term == "Pre-term") |>
-  pull(p)
+#p_preterm_c <- ld_c |>
+#  count(term) |>
+#  mutate(p = n / sum(n)) |>
+ # filter(term == "Pre-term") |>
+##  pull(p)
 
-p_preterm_color_c <- case_when(
-  between(p_preterm_c, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
-  p_preterm_c > params$us_preterm_rate + params$threshold_diff ~ "danger",
-  .default = "light"
-  )
+#p_preterm_color_c <- case_when(
+#  between(p_preterm_c, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
+#  p_preterm_c > params$us_preterm_rate + params$threshold_diff ~ "danger",
+#  .default = "light"
+#  )
 ```
 
 ### Row {height="20%"}
@@ -435,22 +431,22 @@ p_preterm_color_c <- case_when(
 #| component: valuebox
 #| title: "Total births"
 
-list(
-  icon = "file-medical",
-  color = "primary",
-  value = n_births_c
-)
+#list(
+ # icon = "file-medical",
+#  color = "primary",
+#  value = n_births_c
+#)
 ```
 
 ```{r}
 #| component: valuebox
 #| title: "Pre-term births"
 
-list(
-  icon = "calendar-week",
-  color = p_preterm_color_c,
-  value = label_percent(accuracy = 0.1)(p_preterm_c)
-)
+#list(
+ # icon = "calendar-week",
+ # color = p_preterm_color_c,
+ # value = label_percent(accuracy = 0.1)(p_preterm_c)
+#)
 ```
 
 ### Row {height="40%"}
@@ -458,18 +454,18 @@ list(
 ```{r}
 #| title: Maternal age
 
-ld_c |>
-  count(maternal_age) |>
-  mutate(p = n / sum(n)) |>
-  ggplot(aes(x = maternal_age, y = n, group = 1)) +
-  geom_line(linewidth = 2, color = "#0e263560") +
-  geom_point(size = 3, color = "#0e2635") +
-  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
-  labs(x = NULL) +
-  scale_y_continuous(
-    "Count",
-    sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
-  )
+#ld_c |>
+#  count(maternal_age) |>
+ # mutate(p = n / sum(n)) |>
+##  ggplot(aes(x = maternal_age, y = n, group = 1)) +
+ # geom_line(linewidth = 2, color = "#0e263560") +
+#  geom_point(size = 3, color = "#0e2635") +
+#  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
+#  labs(x = NULL) +
+#  scale_y_continuous(
+ #   "Count",
+ #   sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
+#  )
 ```
 
 ### Row {height="40%" .tabset}
@@ -477,33 +473,33 @@ ld_c |>
 ```{r}
 #| title: Maternal age and parity
 
-ld_c |>
-  count(maternal_age, parity) |>
-  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(parity))) +
-  geom_col(position = "fill", color = "white") +
-  scale_fill_brewer(
-    palette = "Blues",
-    guide = guide_legend(reverse = TRUE),
-    direction = -1
-  ) +
-  scale_x_continuous(labels = label_percent()) +
-  labs(y = NULL, x = NULL, fill = "Parity")
+#ld_c |>
+#  count(maternal_age, parity) |>
+#  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(parity))) +
+#  geom_col(position = "fill", color = "white") +
+#  scale_fill_brewer(
+#    palette = "Blues",
+##    guide = guide_legend(reverse = TRUE),
+#    direction = -1
+#  ) +
+#  scale_x_continuous(labels = label_percent()) +
+#  labs(y = NULL, x = NULL, fill = "Parity")
 ```
 
 ```{r}
 #| title: Maternal age and term
 
-ld_c |>
-  count(maternal_age, term) |>
-  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(term))) +
-  geom_col(position = "fill", color = "white") +
-  scale_fill_brewer(
-    palette = "Greens",
-    guide = guide_legend(reverse = TRUE),
-    direction = -1
-  ) +
-  scale_x_continuous(labels = label_percent()) +
-  labs(y = NULL, x = NULL, fill = "Term")
+#ld_c |>
+#  count(maternal_age, term) |>
+#  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(term))) +
+#  geom_col(position = "fill", color = "white") +
+#  scale_fill_brewer(
+#    palette = "Greens",
+#    guide = guide_legend(reverse = TRUE),
+#    direction = -1
+#  ) +
+##  scale_x_continuous(labels = label_percent()) +
+#  labs(y = NULL, x = NULL, fill = "Term")
 ```
 
 ## Column {width="40%"}
@@ -511,19 +507,19 @@ ld_c |>
 ```{r}
 #| title: Data
 
-ld_c |>
-  select(-delivery_method) |>
-  arrange(patient_id) |>
-  datatable(
-    colnames = c("ID", "Maternal age", "Parity", "Term"),
-    options = list(
-      dom = "lrtip", 
-      paging = TRUE,
-      lengthMenu = c(5, 10, 25),
-      pageLength = 10, 
-      scrollY = TRUE
-    ),
-  )
+#ld_c |>
+#  select(-delivery_method) |>
+#  arrange(patient_id) |>
+#  datatable(
+#    colnames = c("ID", "Maternal age", "Parity", "Term"),
+ #   options = list(
+ #     dom = "lrtip", 
+#      paging = TRUE,
+#      lengthMenu = c(5, 10, 25),
+#      pageLength = 10, 
+#      scrollY = TRUE
+#    ),
+# )
 ```
 
 # Data
@@ -531,8 +527,9 @@ ld_c |>
 ```{r}
 raw %>%
   arrange(seqn) %>%
+  select(seqn, fsdhh, fsq165, bmxbmi, bmxht, alq151) %>% 
   datatable(
-    colnames = c("seqn", "fsdhh","fsq165",  "bmxbmi", "bmxht", "alq151")#,
-    #options = list(dom = 'ftp', paging = TRUE)
+    colnames = c("ID", "Household Food Insecurity","Household SNAP Usage",  "BMI", "Standing Height (cm)", "Excessive Daily Alcohol Consumption"),
+    options = list(dom = 'ftp', paging = TRUE)
     )
 ```
