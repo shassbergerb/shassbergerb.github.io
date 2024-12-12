@@ -6,7 +6,7 @@ website:
   description: "PhD Student at Case Western Reserve University\nMatreyek Lab"   # A brief slogan (optional)
   image: img/my_image.jpg
   
-  favicon: img/favicon.png
+  favicon: img/Matreyek_Lab.png
   
   # start of the navigation bar at the top of the website
   navbar:
@@ -15,8 +15,8 @@ website:
     
     # your sub-pages
     left:
-    #  - text: "About Me"
-    #    href: about_me/index.qmd
+      - text: "Blog"
+        href: blog/index.qmd
       - text: "Projects"
         href: projects/index.qmd
       - text: "CV"
