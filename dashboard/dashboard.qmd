@@ -1,5 +1,5 @@
 ---
-title: "Work In Progress"
+title: "Dashboard"
 format: 
   dashboard:
     nav-buttons: [github]
@@ -19,33 +19,73 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r}
-#| label: load-packages
-#| message: false
+```{r packages, message= F, warnings = F}
+library(Epi) # twoby2
+library(janitor)
+library(knitr)
+library(mosaic) # fav stats
+library(broom) # tidy function
+library(magrittr) #pipes
+library(haven) # reads XPT files
+library(patchwork)
+library(Hmisc) # describe()
+library(rstanarm)
 
 library(tidyverse)
+
 library(readxl)
 library(scales)
 library(DT)
 library(gt)
 ```
 
-```{r}
-#| label: load-data
-#| message: false
+```{r data_ingest}
+body_meas = read_rds("dashboard\\data\\body_raw.rds")
 
-ld <- read_excel("data\\ld.xlsx")
+food_sec = read_rds("dashboard\\data\\food_sec_raw.rds")
+
+demog = read_rds("dashboard\\data\\demo_raw.rds")
+
+alc_use = read_rds("dashboard\\data\\alc_use.rds")
 ```
 
-```{r}
-#| label: set-inputs
+```{r cleaning_data}
+new = left_join(demog, body_meas, by = "seqn")
 
+new2 = left_join(new, food_sec, by = "seqn")
+
+new3 = left_join(new2, alc_use, by = "seqn")
+
+reduced = new3 %>% filter(ridstatr == 2, ridageyr < 80, ridageyr > 20)
+
+raw = reduced %>% select(seqn, fsq165, bmxht, bmxbmi, fsdhh, alq151, ridreth3)
+
+raw$fsq165 = as.factor(raw$fsq165) %>% fct_recode("Received" = "1","Never" = "2", "NA" = "9", "NA" = "7")
+
+raw$fsdhh = as.factor(raw$fsdhh) %>% fct_recode("none" = "1","low" = "2","medium" = "3","high" = "4")
+
+raw$alq151 = as.factor(raw$alq151) %>% fct_recode("Yes" = "1","No" = "2", "NA" = "9", "NA" = "7")
+
+raw$ridreth3 = as.factor(raw$ridreth3) %>% fct_recode("Mexican" = "1",
+                                             "Hispanic" = "2",
+                                             "White" = "3",
+                                             "Black" = "4",
+                                             "Asian" = "6",
+                                             "Multi-Race/Other" = "7")
+
+raw = raw %>% filter(fsq165 != "NA", alq151 != "NA", complete.cases(fsq165, bmxht, bmxbmi, fsdhh, alq151, ridreth3)) %>% droplevels() %>% tibble()
+```
+
+
+```{r load_data, message= F}
+ld <- read_excel("dashboard\\data\\ld.xlsx")
+```
+
+```{r set_input}
 time_period <- paste(params$month, params$year)
 ```
 
-```{r}
-#| label: prep-data
-
+```{r data_prep}
 ld <- ld |>
   mutate(
     delivery_method = str_to_sentence(delivery_method),
@@ -161,7 +201,7 @@ list(
 ### Column {width="40%"}
 
 ```{r}
-#| title: Delivery method
+#| title: Food Insecurity
 
 ld |>
   count(delivery_method) |>
@@ -196,20 +236,16 @@ ld |>
 ### Column {width="60%"}
 
 ```{r}
-#| title: Maternal age
+#| title: Food Insecurity
 
-ld |>
-  count(maternal_age) |>
-  mutate(p = n / sum(n)) |>
-  ggplot(aes(x = maternal_age, y = n, group = 1)) +
-  geom_line(linewidth = 2, color = "#0e263560") +
-  geom_point(size = 3, color = "#0e2635") +
-  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
-  labs(x = NULL) +
-  scale_y_continuous(
-    "Count",
-    sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
-  )
+raw %>%
+  count(fsdhh) %>%
+  mutate(p = n/sum(n)) %>%
+  ggplot(aes(x = fsdhh, y = p, group = 1))+
+    geom_line() + 
+    geom_point()+
+  labs(x = "")+
+  scale_y_continuous("Proportion", labels = label_percent())
 ```
 
 ## Row {height="40%"}
@@ -493,10 +529,10 @@ ld_c |>
 # Data
 
 ```{r}
-ld |>
-  arrange(patient_id) |>
+raw %>%
+  arrange(seqn) %>%
   datatable(
-    colnames = c("ID", "Maternal age", "Delivery method", "Parity", "Term"),
-    options = list(dom = 'ftp', paging = TRUE)
+    colnames = c("seqn", "fsdhh","fsq165",  "bmxbmi", "bmxht", "alq151")#,
+    #options = list(dom = 'ftp', paging = TRUE)
     )
 ```
