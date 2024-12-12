@@ -102,30 +102,23 @@ ld <- ld |>
 
 #  {.sidebar}
 
-This dashboard displays statistics for:
-
-|              |                     |
-|--------------|---------------------|
-| **Hospital** | Grey Sloan Memorial |
-| **Unit**     | Labor and Delivery  |
-| **Month**    | `{r} time_period`   |
-
 ------------------------------------------------------------------------
 
-In `{r} time_period` the staff breakdown in the unit was as follows:
+The participants used in this analysis had complete data for the following variables:
 
-|                          |     |
-|--------------------------|-----|
-| **Attending physicians** |  14 |
-| **Residents**            |  21 |
-| **Nurses**               |  12 |
-
+|   NHANES Variable        |  Description   |
+|--------------------------|----------------|
+| **SEQN** |  ID            |
+| **FSDHH**|  Household Food Insecurity     |
+| **BMXBMI**|  BMI ($kg/m^2$)            |
+| **BMXHT** | Standing Height ($cm$) |
+|
 ------------------------------------------------------------------------
 
 ::: {.callout-note collapse="true"}
-## Disclaimer
+## Data Disclaimer 
 
-This is a fictional hospital. The data are simulated based on realistic birth characteristics and risk factors from [this report by the CDC](https://www.cdc.gov/nchs/data/nvsr/nvsr72/nvsr72-01.pdf).
+This dashboard utilizes data from the National Health and Nutrition Examination Survey [sponsored by the CDC](https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?cycle=2017-2020).
 :::
 
 # All
