@@ -2,7 +2,7 @@
 
 # website settings
 website:
-  title: "Brent Shassberger"                          # Your name
+  title: "Brent Shassberger"                        # Your name
   description: "PhD Student at Case Western Reserve University\nMatreyek Lab"   # A brief slogan (optional)
   image: img/my_image.jpg
   

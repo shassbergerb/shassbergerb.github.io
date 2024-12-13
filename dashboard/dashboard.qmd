@@ -111,14 +111,14 @@ The participants used in this analysis had complete data for the following varia
 | **SEQN** |  ID            |
 | **FSDHH**|  Household Food Insecurity     |
 | **BMXBMI**|  BMI ($kg/m^2$)            |
-| **BMXHT** | Standing Height ($cm$) |
+| **ALQ167** | 4/5 Alcoholic Drinks Daily  |
 |
 ------------------------------------------------------------------------
 
 ::: {.callout-note collapse="true"}
 ## Data Disclaimer 
 
-This dashboard utilizes data from the National Health and Nutrition Examination Survey [sponsored by the CDC](https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?cycle=2017-2020).
+This dashboard utilizes data from the 2017 - March 2020 National Health and Nutrition Examination Survey [sponsored by the CDC](https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?cycle=2017-2020).
 :::
 
 # All
@@ -137,18 +137,26 @@ p_fsdhh = raw %>%
   distinct(t) %>%
   pull(t)
 
-
-p_preterm <- ld |>
-  count(term) |>
-  mutate(p = n / sum(n)) |>
-  filter(term == "Pre-term") |>
+p_alq151 = raw %>%
+  count(alq151) %>%
+  mutate(p = n/sum(n)) %>%
+  filter(alq151 != "No") %>%
   pull(p)
+p_alq151 
 
-p_preterm_color <- case_when(
-  between(p_preterm, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
-  p_preterm > params$us_preterm_rate + params$threshold_diff ~ "danger",
-  .default = "light"
-  )
+#p_preterm_color <- case_when(
+#  between(p_preterm, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
+#  p_preterm > params$us_preterm_rate + params$threshold_diff ~ "danger",
+#  .default = "light"
+#  )
+raw %>% tabyl(alq151, fsq165) %>% adorn_totals(where = c("row", "col"))
+
+raw %>% count(alq151) %>%
+  mutate(p =n/sum(n))
+  
+m1 = matrix(nrow = 2, c(586, 2246, 404, 2968))
+rownames(m1) = c("Exessive Daily Drinking", "Non Excessive")
+colnames(m1) = c("Uses SNAP", "Independent")
 ```
 
 ## Row {height="20%"}
@@ -159,7 +167,7 @@ p_preterm_color <- case_when(
 
 list(
   icon = "file-medical",
-  color = "primary",
+  color = "#20603D",
   value = n_participants
 )
 ```
@@ -170,18 +178,19 @@ list(
 
 list(
   icon = "clipboard2-pulse",
+  color = "#49678D",
   value = label_percent(accuracy = 0.1)(p_fsdhh)
 )
 ```
 
 ```{r}
 #| content: valuebox
-#| title: "Pre-term births"
+#| title: "Americans that Drink 4/5 Alcoholic Beverages Daily"
 
 list(
   icon = "calendar-week",
-  color = p_preterm_color,
-  value = label_percent(accuracy = 0.1)(p_preterm)
+  color = "#8B8C7A",
+  value = label_percent(accuracy = 0.1)(p_alq151)
 )
 ```
 
@@ -190,39 +199,8 @@ list(
 ### Column {width="40%"}
 
 ```{r}
-#| title: Food Insecurity
-
-
-
-
-ld |>
-  count(delivery_method) |>
-  mutate(p = n / sum(n)) |>
-  gt() |>
-  fmt_percent(
-    columns = p,
-    decimals = 1
-  ) |>
-  tab_style(
-    style = cell_text(color = "#ae8b2d", weight = "bold"),
-    locations = cells_body(
-      columns = everything(),
-      rows = delivery_method == "Cesarean"
-    )
-  ) |>
-  tab_style(
-    style = cell_text(color = "#0e2635", weight = "bold"),
-    locations = cells_body(
-      columns = everything(),
-      rows = delivery_method == "Vaginal"
-    )
-  ) |>
-  cols_label(
-    delivery_method = "",
-    n = "Number of<br>deliveries",
-    p = "Proportion of<br>deliveries",
-    .fn = md
-  )
+#| title: Excessive Drinking and SNAP (Food Stamp) Usage
+m1 %>% kable()
 ```
 
 ### Column {width="60%"}
@@ -243,173 +221,39 @@ raw %>%
 ## Row {height="40%"}
 
 ```{r}
-#| title: Delivery method and parity
+#| title: Body Mass Index (Log Transformed) and Food Insecurity
 
-ld |>
-  count(parity, delivery_method) |>
-  ggplot(aes(x = n, y = fct_rev(parity), fill = delivery_method)) +
+ggplot(raw, aes(x = fsdhh, y = log(bmxbmi)))+
+  geom_violin(aes(fill = fsdhh), alpha = 0.5)+
+  geom_boxplot(width = 0.5, aes(fill = fsdhh), alpha = 0.75)+
+  coord_flip()+
+  labs(x = "", y=  "")
+
+```
+
+```{r}
+#| title: Food Insecurity and Excessive Daily Drinks
+
+raw %>%
+  count(fsdhh, alq151) |>
+  ggplot(aes(x = n, y = fct_rev(fsdhh), fill = alq151)) +
   geom_col(position = "fill", color = "white") +
   scale_fill_manual(
-    values = c("#ae8b2d", "#0e2635"),
+    values = c("#49678D", "#20603D"),
     guide = guide_legend(reverse = TRUE)
   ) +
   scale_x_continuous(labels = label_percent()) +
-  labs(y = NULL, x = NULL, fill = "Delivery\nmethod")
+  labs(y = NULL, x = NULL, fill = "Excessive\nDaily\nDrinks")
 ```
 
-```{r}
-#| title: Delivery method and maternal age
 
-ld |>
-  count(maternal_age, delivery_method) |>
-  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = delivery_method)) +
-  geom_col(position = "fill", color = "white") +
-  scale_fill_manual(
-    values = c("#ae8b2d", "#0e2635"),
-    guide = guide_legend(reverse = TRUE)
-  ) +
-  scale_x_continuous(labels = label_percent()) +
-  labs(y = NULL, x = NULL, fill = "Delivery\nmethod")
-```
-
-# Vaginal {orientation="columns"}
-
-## Column {width="60%"}
-
-```{r}
-#| label: vaginal-values
-#| results: hide
-
-#ld_v <- ld |>
-  #filter(delivery_method == "Vaginal")
-
-#n_births_v <- nrow(ld_v)
-
-#p_preterm_v <- ld_v |>
- # count(term) |>
-  #mutate(p = n / sum(n)) |>
- # filter(term == "Pre-term") |>
- #pull(p)
-
-#p_preterm_color_v <- case_when(
- # between(p_preterm_v, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
-#  p_preterm_v > params$us_preterm_rate + params$threshold_diff ~ "danger",
-  #.default = "light"
- # )
-```
-
-### Row {height="20%"}
-
-```{r}
-#| component: valuebox
-#| title: "Total births"
-
-#list(
- # icon = "file-medical",
-  #color = "primary",
-  #value = n_births_v
-#)
-```
-
-```{r}
-#| component: valuebox
-#| title: "Pre-term births"
-
-#list(
- # icon = "calendar-week",
-#  color = p_preterm_color_v,
- # value = label_percent(accuracy = 0.1)(p_preterm_v))
-```
-
-### Row {height="40%"}
-
-```{r}
-#| title: Maternal age
-
-#ld_v |>
-#  count(maternal_age) |>
-#  mutate(p = n / sum(n)) |>
-#  ggplot(aes(x = maternal_age, y = n, group = 1)) +
-#  geom_line(linewidth = 2, color = "#0e263560") +
-##  geom_point(size = 3, color = "#0e2635") +
-#  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
-#  labs(x = NULL) +
-#  scale_y_continuous(
-##    "Count",
-  #  sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
-#  )
-```
-
-### Row {height="40%" .tabset}
-
-```{r}
-#| title: Maternal age and parity
-
-#ld_v |>
-#  count(maternal_age, parity) |>
-#  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(parity))) +
-#  geom_col(position = "fill", color = "white") +
-#  scale_fill_brewer(
-#    palette = "Blues",
-##    guide = guide_legend(reverse = TRUE),
-#    direction = -1
-#  ) +
-#  scale_x_continuous(labels = label_percent()) +
-#  labs(y = NULL, x = NULL, fill = "Parity")
-```
-
-```{r}
-#| title: Maternal age and term
-#
-#ld_v |>
-#  count(maternal_age, term) |>
-###  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(term))) +
-#  geom_col(position = "fill", color = "white") +
-#  scale_fill_brewer(
-#    palette = "Greens",
-#    guide = guide_legend(reverse = TRUE),
-##    direction = -1
-#  ) +
-#  scale_x_continuous(labels = label_percent()) +
-#  labs(y = NULL, x = NULL, fill = "Term")
-```
-
-## Column {width="40%"}
-
-```{r}
-#| title: Data
-
-#ld_v |>
-#  select(-delivery_method) |>
-#  arrange(patient_id) |>
-#  datatable(
-#    colnames = c("ID", "Maternal age", "Parity", "Term"),
-#    options = list(
-##      dom = "lrtip", 
-##      paging = TRUE,
-#      lengthMenu = c(5, 10, 25),
-#      pageLength = 10, 
-#      scrollY = TRUE ),)
-```
-
-# Caesarean {orientation="columns"}
+# Statistics {orientation="columns"}
 
 ## Column {width="60%"}
 
 ```{r}
 #| label: cesarean-values
 #| results: hide
-
-#ld_c <- ld |>
-#  filter(delivery_method == "Cesarean")
-
-#n_births_c <- nrow(ld_c)
-
-#p_preterm_c <- ld_c |>
-#  count(term) |>
-#  mutate(p = n / sum(n)) |>
- # filter(term == "Pre-term") |>
-##  pull(p)
 
 #p_preterm_color_c <- case_when(
 #  between(p_preterm_c, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
