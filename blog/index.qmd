@@ -2,4 +2,10 @@
 title: Blog
 ---
 
-This page is a work in progress
+This Page is a Work in Progress
+
+# December 12, 2024
+
+While working towards my undergraduate degree, I took an interest in epidemiology and tracking human health at the population level. As an exercise, I have chosen to investigate if food insecurity in the United States could be predicted by one's habits or physical characteristics. To do this, I've used the CDC's National Health and Nutrition Examination Survey (NHANES) 2018 - March 2020 to compare the usage of the Supplemental Nutrition Assistance Program (SNAP; formerly known as Food Stamps), levels of food insecurity, excessive alcohol consumption (which has been deemed as 4 drinks for women and 5 drinks for men per day), and the participant's Body Mass Index (BMI). I have posted the analyses of the comparisons to the website under the [Dashboard Tab](https://shassbergerb.github.io/dashboard/dashboard.html#all). 
+
+To create the dashboard, I edited a Quarto template for dashboards in R that was provided by my statistics professor. 

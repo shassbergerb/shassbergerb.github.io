@@ -110,6 +110,7 @@ The participants used in this analysis had complete data for the following varia
 |--------------------------|----------------|
 | **SEQN** |  ID            |
 | **FSDHH**|  Household Food Insecurity     |
+| **FSQ165** | Usage of SNAP (Food Stamps) |
 | **BMXBMI**|  BMI ($kg/m^2$)            |
 | **ALQ167** | 4/5 Alcoholic Drinks Daily  |
 |
@@ -142,20 +143,16 @@ p_alq151 = raw %>%
   mutate(p = n/sum(n)) %>%
   filter(alq151 != "No") %>%
   pull(p)
-p_alq151 
 
-#p_preterm_color <- case_when(
-#  between(p_preterm, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
-#  p_preterm > params$us_preterm_rate + params$threshold_diff ~ "danger",
-#  .default = "light"
-#  )
 raw %>% tabyl(alq151, fsq165) %>% adorn_totals(where = c("row", "col"))
 
 raw %>% count(alq151) %>%
   mutate(p =n/sum(n))
   
 m1 = matrix(nrow = 2, c(586, 2246, 404, 2968))
+
 rownames(m1) = c("Exessive Daily Drinking", "Non Excessive")
+
 colnames(m1) = c("Uses SNAP", "Independent")
 ```
 
@@ -222,13 +219,11 @@ raw %>%
 
 ```{r}
 #| title: Body Mass Index (Log Transformed) and Food Insecurity
-
 ggplot(raw, aes(x = fsdhh, y = log(bmxbmi)))+
   geom_violin(aes(fill = fsdhh), alpha = 0.5)+
   geom_boxplot(width = 0.5, aes(fill = fsdhh), alpha = 0.75)+
   coord_flip()+
   labs(x = "", y=  "")
-
 ```
 
 ```{r}
@@ -255,35 +250,35 @@ raw %>%
 #| label: cesarean-values
 #| results: hide
 
-#p_preterm_color_c <- case_when(
-#  between(p_preterm_c, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
-#  p_preterm_c > params$us_preterm_rate + params$threshold_diff ~ "danger",
-#  .default = "light"
-#  )
+p_preterm_color_c <- case_when(
+  between(p_preterm_c, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
+  p_preterm_c > params$us_preterm_rate + params$threshold_diff ~ "danger",
+  .default = "light"
+  )
 ```
 
 ### Row {height="20%"}
 
 ```{r}
 #| component: valuebox
-#| title: "Total births"
+#| title: ""
 
-#list(
- # icon = "file-medical",
-#  color = "primary",
-#  value = n_births_c
-#)
+list(
+ icon = "file-medical",
+  color = "primary",
+  value = n_births_c
+)
 ```
 
 ```{r}
 #| component: valuebox
 #| title: "Pre-term births"
 
-#list(
- # icon = "calendar-week",
- # color = p_preterm_color_c,
- # value = label_percent(accuracy = 0.1)(p_preterm_c)
-#)
+list(
+ icon = "calendar-week",
+  color = p_preterm_color_c,
+  value = label_percent(accuracy = 0.1)(p_preterm_c)
+)
 ```
 
 ### Row {height="40%"}
@@ -291,18 +286,18 @@ raw %>%
 ```{r}
 #| title: Maternal age
 
-#ld_c |>
-#  count(maternal_age) |>
- # mutate(p = n / sum(n)) |>
-##  ggplot(aes(x = maternal_age, y = n, group = 1)) +
- # geom_line(linewidth = 2, color = "#0e263560") +
-#  geom_point(size = 3, color = "#0e2635") +
-#  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
-#  labs(x = NULL) +
-#  scale_y_continuous(
- #   "Count",
- #   sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
-#  )
+ld_c |>
+  count(maternal_age) |>
+  mutate(p = n / sum(n)) |>
+  ggplot(aes(x = maternal_age, y = n, group = 1)) +
+  geom_line(linewidth = 2, color = "#0e263560") +
+  geom_point(size = 3, color = "#0e2635") +
+  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
+  labs(x = NULL) +
+  scale_y_continuous(
+    "Count",
+    sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
+  )
 ```
 
 ### Row {height="40%" .tabset}
@@ -310,17 +305,17 @@ raw %>%
 ```{r}
 #| title: Maternal age and parity
 
-#ld_c |>
-#  count(maternal_age, parity) |>
-#  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(parity))) +
-#  geom_col(position = "fill", color = "white") +
-#  scale_fill_brewer(
-#    palette = "Blues",
-##    guide = guide_legend(reverse = TRUE),
-#    direction = -1
-#  ) +
-#  scale_x_continuous(labels = label_percent()) +
-#  labs(y = NULL, x = NULL, fill = "Parity")
+ld_c |>
+  count(maternal_age, parity) |>
+  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(parity))) +
+  geom_col(position = "fill", color = "white") +
+  scale_fill_brewer(
+    palette = "Blues",
+    guide = guide_legend(reverse = TRUE),
+    direction = -1
+  ) +
+  scale_x_continuous(labels = label_percent()) +
+  labs(y = NULL, x = NULL, fill = "Parity")
 ```
 
 ```{r}
