@@ -29,14 +29,12 @@ library(magrittr) #pipes
 library(haven) # reads XPT files
 library(patchwork)
 library(Hmisc) # describe()
-library(rstanarm)
+library(rstatix)
+library(DT)
+library(scales)
 
 library(tidyverse)
 
-library(readxl)
-library(scales)
-library(DT)
-library(gt)
 ```
 
 ```{r data_ingest}
@@ -76,30 +74,6 @@ raw$ridreth3 = as.factor(raw$ridreth3) %>% fct_recode("Mexican" = "1",
 raw = raw %>% filter(fsq165 != "NA", alq151 != "NA", complete.cases(fsq165, bmxht, bmxbmi, fsdhh, alq151, ridreth3)) %>% droplevels() %>% tibble()
 ```
 
-
-```{r load_data, message= F}
-ld <- read_excel("data\\ld.xlsx")
-```
-
-```{r set_input}
-time_period <- paste(params$month, params$year)
-```
-
-```{r data_prep}
-ld <- ld |>
-  mutate(
-    delivery_method = str_to_sentence(delivery_method),
-    term = str_to_sentence(term),
-    parity = case_when(
-      parity == "1"  ~ "Nulliparous",
-      parity == "2"  ~ "Primiparous",
-      parity == "3+" ~ "Multiparous"
-    ),
-    parity = fct_relevel(parity, "Nulliparous", "Primiparous", "Multiparous"),
-    maternal_age = fct_relevel(maternal_age, "<20", "20-34", "35+")
-  )
-```
-
 #  {.sidebar}
 
 ------------------------------------------------------------------------
@@ -117,7 +91,7 @@ The participants used in this analysis had complete data for the following varia
 ------------------------------------------------------------------------
 
 ::: {.callout-note collapse="true"}
-## Data Disclaimer 
+## Data 
 
 This dashboard utilizes data from the 2017 - March 2020 National Health and Nutrition Examination Survey [sponsored by the CDC](https://wwwn.cdc.gov/nchs/nhanes/continuousnhanes/default.aspx?cycle=2017-2020).
 :::
@@ -154,6 +128,16 @@ m1 = matrix(nrow = 2, c(586, 2246, 404, 2968))
 rownames(m1) = c("Exessive Daily Drinking", "Non Excessive")
 
 colnames(m1) = c("Uses SNAP", "Independent")
+
+model_anyc = lm(log(bmxbmi) ~ fsdhh, data = raw)
+
+anova(model_anyc)
+
+tablec = tidy(TukeyHSD(aov(model_anyc), ordered = T, conf.level = 0.9)) %>% select(contrast, estimate, conf.low, conf.high, adj.p.value) %>% adorn_rounding(digits = 3)
+
+prob_anyd = twoby2(raw$alq151, raw$fsq165, alpha = 0.1)
+
+
 ```
 
 ## Row {height="20%"}
@@ -163,8 +147,8 @@ colnames(m1) = c("Uses SNAP", "Independent")
 #| title: "Participants"
 
 list(
-  icon = "file-medical",
-  color = "#20603D",
+  icon = "person-arms-up",
+  color =  "#7FB5B5",
   value = n_participants
 )
 ```
@@ -174,7 +158,7 @@ list(
 #| title: "Americans with Food Insecurity"
 
 list(
-  icon = "clipboard2-pulse",
+  icon = "patch-question",
   color = "#49678D",
   value = label_percent(accuracy = 0.1)(p_fsdhh)
 )
@@ -185,7 +169,7 @@ list(
 #| title: "Americans that Drink 4/5 Alcoholic Beverages Daily"
 
 list(
-  icon = "calendar-week",
+  icon = "cup-straw",
   color = "#8B8C7A",
   value = label_percent(accuracy = 0.1)(p_alq151)
 )
@@ -241,7 +225,6 @@ raw %>%
   labs(y = NULL, x = NULL, fill = "Excessive\nDaily\nDrinks")
 ```
 
-
 # Statistics {orientation="columns"}
 
 ## Column {width="60%"}
@@ -250,108 +233,48 @@ raw %>%
 #| label: cesarean-values
 #| results: hide
 
-p_preterm_color_c <- case_when(
-  between(p_preterm_c, params$us_preterm_rate, params$us_preterm_rate + params$threshold_diff) ~ "warning",
-  p_preterm_c > params$us_preterm_rate + params$threshold_diff ~ "danger",
-  .default = "light"
-  )
+chisq.test(raw$fsdhh, raw$alq151)
+
+fsdhh_alq151 = table(raw$fsdhh, raw$alq151)
 ```
 
 ### Row {height="20%"}
 
 ```{r}
-#| component: valuebox
-#| title: ""
+#| content: valuebox
+#| title: "Excessive Drinking correlates with Food Insecurity"
 
-list(
- icon = "file-medical",
-  color = "primary",
-  value = n_births_c
-)
+pairwise_fisher_test(fsdhh_alq151, p.adjust.method = "fdr")  %>% select(group1, group2, p, p.adj)%>% kable(digits = 3)
+
 ```
 
 ```{r}
 #| component: valuebox
-#| title: "Pre-term births"
+#| title: "Excessive Alcohol Consumption Correlates to SNAP usages"
 
-list(
- icon = "calendar-week",
-  color = p_preterm_color_c,
-  value = label_percent(accuracy = 0.1)(p_preterm_c)
-)
+prob_anyd$measures %>% kable(digits =3 )
 ```
 
 ### Row {height="40%"}
 
 ```{r}
-#| title: Maternal age
+#| title: How Food Insecurity Impacts BMI
 
-ld_c |>
-  count(maternal_age) |>
-  mutate(p = n / sum(n)) |>
-  ggplot(aes(x = maternal_age, y = n, group = 1)) +
-  geom_line(linewidth = 2, color = "#0e263560") +
-  geom_point(size = 3, color = "#0e2635") +
-  geom_point(size = 6, color = "#0e2635", shape = "circle open") +
-  labs(x = NULL) +
-  scale_y_continuous(
-    "Count",
-    sec.axis = sec_axis(~ . / n_births, name = "Proportion", labels = label_percent())
-  )
+ggplot(tablec, aes(x = reorder(contrast, -estimate), y = estimate))+
+  geom_pointrange(aes(ymin = conf.low, ymax = conf.high))+
+  geom_hline(yintercept = 0, col = "red")+
+  theme(axis.text.x = element_text(angle=45, hjust = 1)) %>% 
+  labs(x = "Food Insecurity\nLevel Comaparisons", y = "Significicance")
 ```
 
-### Row {height="40%" .tabset}
+### Row {height="40%"}
 
 ```{r}
-#| title: Maternal age and parity
-
-ld_c |>
-  count(maternal_age, parity) |>
-  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(parity))) +
-  geom_col(position = "fill", color = "white") +
-  scale_fill_brewer(
-    palette = "Blues",
-    guide = guide_legend(reverse = TRUE),
-    direction = -1
-  ) +
-  scale_x_continuous(labels = label_percent()) +
-  labs(y = NULL, x = NULL, fill = "Parity")
-```
-
-```{r}
-#| title: Maternal age and term
-
-#ld_c |>
-#  count(maternal_age, term) |>
-#  ggplot(aes(x = n, y = fct_rev(maternal_age), fill = fct_rev(term))) +
-#  geom_col(position = "fill", color = "white") +
-#  scale_fill_brewer(
-#    palette = "Greens",
-#    guide = guide_legend(reverse = TRUE),
-#    direction = -1
-#  ) +
-##  scale_x_continuous(labels = label_percent()) +
-#  labs(y = NULL, x = NULL, fill = "Term")
-```
-
-## Column {width="40%"}
-
-```{r}
-#| title: Data
-
-#ld_c |>
-#  select(-delivery_method) |>
-#  arrange(patient_id) |>
-#  datatable(
-#    colnames = c("ID", "Maternal age", "Parity", "Term"),
- #   options = list(
- #     dom = "lrtip", 
-#      paging = TRUE,
-#      lengthMenu = c(5, 10, 25),
-#      pageLength = 10, 
-#      scrollY = TRUE
-#    ),
-# )
+#| title: Excessive Alcohol Consumption by Food Insecurity Levels
+mosaicplot(fsdhh_alq151, color = T,
+           main = "",
+           xlab = "Food Insecurity Level",
+           ylab = "Excessive Alcohol Consumption") 
 ```
 
 # Data
