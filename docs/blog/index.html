@@ -66,6 +66,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -96,6 +125,10 @@ ul.task-list li input[type="checkbox"] {
   <li class="nav-item">
     <a class="nav-link" href="../cv/index.html"> 
 <span class="menu-text">CV</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="../blog/index.html" aria-current="page"> 
+<span class="menu-text">Blog</span></a>
   </li>  
   <li class="nav-item">
     <a class="nav-link" href="../dashboard/dashboard.html"> 
@@ -147,11 +180,15 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>This Page is a Work in Progress</p>
 <section id="december-12-2024" class="level1">
 <h1>December 12, 2024</h1>
 <p>While working towards my undergraduate degree, I took an interest in epidemiology and tracking human health at the population level. As an exercise, I have chosen to investigate if food insecurity in the United States could be predicted by one’s habits or physical characteristics. To do this, I’ve used the CDC’s National Health and Nutrition Examination Survey (NHANES) 2018 - March 2020 to compare the usage of the Supplemental Nutrition Assistance Program (SNAP; formerly known as Food Stamps), levels of food insecurity, excessive alcohol consumption (which has been deemed as 4 drinks for women and 5 drinks for men per day), and the participant’s Body Mass Index (BMI). I have posted the analyses of the comparisons to the website under the <a href="https://shassbergerb.github.io/dashboard/dashboard.html#all">Dashboard Tab</a>.</p>
 <p>To create the dashboard, I edited a Quarto template for dashboards in R that was provided by my statistics professor.</p>
+<p>My hypotheses for this investigation included that increasing levels of food insecurity would decrease an individuals BMI, that excessive daily alcoholic drinks would be correlated with higher levels of food insecurity and usage of the SNAP Program. My hypotheses were based on the idea that individuals who where in hardship to find stable food may use alcohol to cope with the stress or could be struggling to control addictive tendencies. Both using alcohol as a coping mechanism and an difficulty controlling an addiction correlating with food insecurity may provide insight into a systematic disservice to communities and households, leading to a slippery slope that is difficult to escape.</p>
+<p>To investigate is SNAP usage was correlated with excessive alcohol consumption, I used a <span class="math inline">\(\chi^2\)</span> test; this test showed a significant difference between individuals that have have daily excessive alcohol intake and use food stamps compared to those that do not do either (p&lt;0.01). The relative risk of someone who drinks 4-5 alcohol beverages a day to need to use the SNAP program was 1.37 (CI: 1.31, 1.45), indicating that it was more likely to occur than if the correlation was random.</p>
+<p>To complete this analysis, I used <span class="math inline">\(\chi^2\)</span> tests and pairwise fisher tests to compare the excessive daily alcohol consumption with household food insecurity. The <span class="math inline">\(\chi^2\)</span> showed that there was at lease one group significantly different than the others (p&lt;0.01). To identify which levels were different, the pairwise fisher showed that each level of food insecurity was different than each other, with the exceptions of the low and medium levels of food insecurity. This analysis shows that as food insecurity increases, there is an increase in daily excessive alcohol consumption.</p>
+<p>Finally, to investigate if levels of food insecurity impacted the BMI of the individual, I created a linear model of each category and performed an ANOVA to identify if the mean of one group was different than the others. Due to the spread of BMIs in the data, I needed to transform the BMI with the natural log to reduce the wide tails of the data and make the data normal. The ANOVA of the transformed BMI returned a significant value (p&lt;0.01), so I continued to delve deeper with a Tukey Honestly Significant Difference test to identify pairwise differences. Interestingly, there was a significant difference in the log of BMI for those that had no food insecurity and any other level; however, the log of BMI for any level of food insecurity (low-high) were not significantly different from each other. The log of BMI increased with any level of food insecurity compared to no food insecurity; this could be evidence that when people with food insecurity do have the opportunity to purchase food, it is “unhealthy” food (such as fast food).</p>
+<p>Overall, my investigation of the NHANES 2018 - March 2020 data returned interesting observations. While my hypotheses were correct for alcohol consumption on SNAP usage or food insecurity level, the opposite was true for BMI in relation to food insecurity. Further steps in this analysis could include investigating the dietary data from the same data set, which I excluded for this initial analysis for simplicity sake, as well as looking for additional factors that could contribute to either excessive alcohol consumption or increased BMI, including but not limited to the activity level of participants or their reported stress levels.</p>
 
 
 </section>

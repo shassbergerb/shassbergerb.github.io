@@ -99,7 +99,7 @@ This dashboard utilizes data from the 2017 - March 2020 National Health and Nutr
 # All
 
 ```{r}
-#| label: all-values
+#| label: page_one_values
 #| results: hide
 
 n_participants <- nrow(raw)
@@ -128,16 +128,6 @@ m1 = matrix(nrow = 2, c(586, 2246, 404, 2968))
 rownames(m1) = c("Exessive Daily Drinking", "Non Excessive")
 
 colnames(m1) = c("Uses SNAP", "Independent")
-
-model_anyc = lm(log(bmxbmi) ~ fsdhh, data = raw)
-
-anova(model_anyc)
-
-tablec = tidy(TukeyHSD(aov(model_anyc), ordered = T, conf.level = 0.9)) %>% select(contrast, estimate, conf.low, conf.high, adj.p.value) %>% adorn_rounding(digits = 3)
-
-prob_anyd = twoby2(raw$alq151, raw$fsq165, alpha = 0.1)
-
-
 ```
 
 ## Row {height="20%"}
@@ -230,8 +220,15 @@ raw %>%
 ## Column {width="60%"}
 
 ```{r}
-#| label: cesarean-values
+#| label: page2_analyses
 #| results: hide
+model_anyc = lm(log(bmxbmi) ~ fsdhh, data = raw)
+
+anova(model_anyc)
+
+tablec = tidy(TukeyHSD(aov(model_anyc), ordered = T, conf.level = 0.9)) %>% select(contrast, estimate, conf.low, conf.high, adj.p.value) %>% adorn_rounding(digits = 3)
+
+prob_anyd = twoby2(raw$alq151, raw$fsq165, alpha = 0.1)
 
 chisq.test(raw$fsdhh, raw$alq151)
 
@@ -282,9 +279,9 @@ mosaicplot(fsdhh_alq151, color = T,
 ```{r}
 raw %>%
   arrange(seqn) %>%
-  select(seqn, fsdhh, fsq165, bmxbmi, bmxht, alq151) %>% 
+  select(seqn, fsdhh, fsq165, bmxbmi, alq151) %>% 
   datatable(
-    colnames = c("ID", "Household Food Insecurity","Household SNAP Usage",  "BMI", "Standing Height (cm)", "Excessive Daily Alcohol Consumption"),
+    colnames = c("ID", "Household Food Insecurity","Household SNAP Usage",  "BMI", "Excessive Daily Alcohol Consumption"),
     options = list(dom = 'ftp', paging = TRUE)
     )
 ```
